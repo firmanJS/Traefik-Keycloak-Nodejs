@@ -4,4 +4,6 @@ docker-compose -f docker-compose.yml up --build -d
 ```
 
 ### Test in Browser 
-- localhost:8080
+- `keycloack web admin` keycloak.localhost
+- `example user service` user-service.localhost
+- `traefik web server` localhost:8080
