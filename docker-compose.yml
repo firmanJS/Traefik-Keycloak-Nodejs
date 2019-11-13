@@ -11,7 +11,7 @@ services:
       #- "--log.level=DEBUG"
       - "--api.insecure=true"
       - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.exposedbydefault=true"
       - "--entrypoints.web.address=:80"
     ports:
       - "80:80"
@@ -31,6 +31,8 @@ services:
       image: postgres
       volumes:
         - postgres_data:/var/lib/postgresql/data
+      ports:
+      - "5432:5432"
       environment:
         POSTGRES_DB: keycloak
         POSTGRES_USER: keycloak
@@ -41,6 +43,7 @@ services:
       environment:
         DB_VENDOR: POSTGRES
         DB_ADDR: postgres_keycloak
+        DB_PORT: 5432
         DB_DATABASE: keycloak
         DB_USER: keycloak
         DB_SCHEMA: public
@@ -51,8 +54,8 @@ services:
         - postgres_keycloak
       labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.whoami.rule=Host(`keycloak.localhost`)"
-        - "traefik.http.routers.whoami.entrypoints=web"
+        - "traefik.http.routers.keycloak.rule=Host(`keycloak.localhost`)"
+        - "traefik.http.routers.keycloak.entrypoints=web"
 
   user-service:
     build:
@@ -62,5 +65,7 @@ services:
       - ./service/user:/app
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.whoami.rule=Host(`user-service.localhost`)"
-      - "traefik.http.routers.whoami.entrypoints=web"
+      - "traefik.http.routers.user-service.rule=Host(`user-service.localhost`)"
+      - "traefik.http.routers.user-service.entrypoints=web"
+      # - "traefik.http.routers.api.middlewares=auth"
+      # - "traefik.http.routers.api.service=api@internal"
