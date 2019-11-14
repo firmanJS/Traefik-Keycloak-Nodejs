@@ -49,12 +49,31 @@ services:
         - "traefik.http.routers.keycloak.rule=Host(`keycloak.localhost`)"
         - "traefik.http.routers.keycloak.entrypoints=web"
 
+  keycloak-gatekeeper:
+    image: keycloak/keycloak-gatekeeper:7.0.0
+    labels:
+     - "traefik.port=3000"
+     - "traefik.frontend.rule=Host:user-service.localhost"
+     - "traefik.protocol=http"
+    restart: always
+    depends_on: 
+     - keycloak
+    external_links:
+      - traefik:keycloak.localhost
+    volumes:
+      - ./keycloak-gatekeeper/keycloak-gatekeeper.conf:/etc/keycloak-gatekeeper.conf
+    entrypoint:
+      - /opt/keycloak-gatekeeper
+      - --config=/etc/keycloak-gatekeeper.conf
+
   user-service:
     build:
       context: ./service/user
       dockerfile: Dockerfile
     volumes:
-      - ./service/user:/app
+      - ./service/user:/app  
+    depends_on: 
+      - traefik
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.user-service.rule=Host(`user-service.localhost`)"
