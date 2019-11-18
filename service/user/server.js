@@ -9,11 +9,11 @@ app.get('/user', function (req, res) {
   if (!req.headers['authorization']) return res.json({msg:'unauthorized'})
   let encToken = req.headers['authorization'].replace(/Bearer\s/, '')
   let decToken = jwt.decode(encToken)
-  let clientAccess = decToken.resource_access['user-client']
-  if (clientAccess && clientAccess.roles.includes('access_view'))
+  let clientAccess = decToken.aud.includes('demo-client')
+  if (clientAccess)
     res.json({user:['user1', 'user2', 'user3']})
   else
-    res.json({msg:'no access !'})
+    res.json({msg:'no access allowed !'})
 });
 app.post('/user', function (req, res) {
   if (!req.headers['authorization']) return res.json({msg:'unauthorized'})
@@ -57,13 +57,12 @@ app.delete('/user/:id', function (req, res) {
 });
 
 app.get('/', function (req, res) {
-  res.sendFile(indexHTML)
+  res.json({msg:'no access !'})
 })
 
 app.get('/keycloak-user.json', function (req, res) {
   res.sendFile(keycloakJSON)
 })
 
-app.use(express.static(path.join(__dirname, '../node_modules')))
 app.listen(3001);
 console.log('app running in port 3001');
