@@ -5,78 +5,104 @@ volumes:
 services:
 
   traefik:
-    image: "traefik:v2.0.0-rc3"
+    image: "traefik:v2.0"
     container_name: "traefik"
     command:
-      #- "--log.level=DEBUG"
+      # - "--log.level=DEBUG"
       - "--api.insecure=true"
       - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=true"
+      - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
+
+      #  - "--api.insecure=true"
+      # - "--providers.docker=true"
+      # - "--providers.docker.exposedbydefault=false" # set true expose postgres and traefik if traefik.enabled not set
+      # - "--entrypoints.web.address=:80"
+      # - "--entrypoints.websecure.address=:443"
+      # - "--certificatesresolvers.myhttpchallenge.acme.httpchallenge=true"
+      # - "--certificatesresolvers.myhttpchallenge.acme.httpchallenge.entrypoint=web"
     ports:
       - "80:80"
       - "8080:8080"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    # networks:
+    #   auth_network:
+    #   service_network:
   
   postgres_keycloak:
-      image: postgres
-      volumes:
-        - postgres_data:/var/lib/postgresql/data
-      ports:
-      - "5432:5432"
-      environment:
-        POSTGRES_DB: keycloak
-        POSTGRES_USER: keycloak
-        POSTGRES_PASSWORD: password
+    image: postgres
+    # networks:
+    #   auth_network:
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+    - "5432:5432"
+    environment:
+      POSTGRES_DB: keycloak_traefik
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: password
         
   keycloak:
-      image: jboss/keycloak
-      environment:
-        DB_VENDOR: POSTGRES
-        DB_ADDR: postgres_keycloak
-        DB_PORT: 5432
-        DB_DATABASE: keycloak
-        DB_USER: keycloak
-        DB_SCHEMA: public
-        DB_PASSWORD: password
-        KEYCLOAK_USER: admin
-        KEYCLOAK_PASSWORD: admin
-      depends_on:
-        - postgres_keycloak
-      labels:
-        - "traefik.enable=true"
-        - "traefik.http.routers.keycloak.rule=Host(`keycloak.localhost`)"
-        - "traefik.http.routers.keycloak.entrypoints=web"
-
-  keycloak-gatekeeper:
-    image: keycloak/keycloak-gatekeeper:7.0.0
+    image: jboss/keycloak
+    # networks:
+    #   auth_network:
+    environment:
+      DB_VENDOR: POSTGRES
+      DB_ADDR: postgres_keycloak
+      DB_PORT: 5432
+      DB_DATABASE: keycloak_traefik
+      DB_USER: keycloak
+      DB_SCHEMA: public
+      DB_PASSWORD: password
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: admin
+    depends_on:
+      - traefik
+      - postgres_keycloak
     labels:
-     - "traefik.port=3000"
-     - "traefik.frontend.rule=Host:user-service.localhost"
-     - "traefik.protocol=http"
-    restart: always
-    depends_on: 
-     - keycloak
-    external_links:
-      - traefik:keycloak.localhost
-    volumes:
-      - ./keycloak-gatekeeper/keycloak-gatekeeper.conf:/etc/keycloak-gatekeeper.conf
-    entrypoint:
-      - /opt/keycloak-gatekeeper
-      - --config=/etc/keycloak-gatekeeper.conf
+      - "traefik.enable=true"
+      - "traefik.http.routers.keycloak.rule=Host(`keycloak.localhost`)"
+      # - "traefik.http.services.keycloak.loadbalancer.server.port=8080"
+      - "traefik.http.services.keycloak.loadbalancer.passhostheader=false"
+      # - "traefik.http.middlewares.keycloak.forwardauth.address=http://keycloak.localhost/auth"
+      # - "traefik.http.middlewares.keycloak.forwardauth.authResponseHeaders=X-Forwarded-User"
+      # - "traefik.http.middlewares.keycloak.forwardauth.trustForwardHeader=true"
 
-  user-service:
+      # old config
+      # - "traefik.enable=true"
+      # - "traefik.frontend.passHostHeader=true"
+      # - "traefik.backend=keycloak.localhost"
+      # - "traefik.http.services.keycloack.loadbalancer.server.port=8080"
+      # - "traefik.http.routers.keycloak.rule=Host(`keycloak.localhost`)"
+      # - "traefik.protocol=http"
+      # - "traefik.http.routers.keycloak.entrypoints=web"
+      # - "traefik.docker.network=auth_network"
+
+  service_nodejs:
     build:
-      context: ./service/user
+      context: ./service/nodejs
       dockerfile: Dockerfile
     volumes:
-      - ./service/user:/app  
+      - ./service/nodejs:/src/app 
+      - /service/nodejs/node_modules 
+    # networks: 
+    #   auth_network:
+    #   service_network:
+    restart: always
     depends_on: 
       - traefik
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.user-service.rule=Host(`user-service.localhost`)"
-      - "traefik.http.routers.user-service.entrypoints=web"
+      - "traefik.http.routers.service_nodejs.rule=Host(`service_nodejs.localhost`)"
+      # - "traefik.http.services.service_nodejs.loadbalancer.passhostheader=false"
+
+      # old config
+      # - "traefik.enable=true"
+      # - "traefik.http.routers.service_nodejs.rule=Host(`service_nodejs.localhost`)"
+      # - "traefik.http.routers.service_nodejs.entrypoints=web"
       # - "traefik.http.routers.api.middlewares=auth"
       # - "traefik.http.routers.api.service=api@internal"
+# networks:
+#   service_network:
+#   auth_network:

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang='en'>
+<body>
+  <code id="jsons">
+      <br>
+      <a href="http://localhost:8080/auth/realms/sapawarga-realm/protocol/openid-connect/logout?redirect_uri=http%3A%2F%2Flocalhost%3A3001%2F">Sign Out</a>
+  </code>
+<script src='http://keycloak.localhost/auth/js/keycloak.js'></script>
+<script type='text/javascript'>
+  'use strict'
+  document.getElementById('jsons').style.display = "none";
+  const keycloak = Keycloak('http://user-service.localhost/keycloak-user.json')
+  keycloak.init({ onLoad: 'login-required' })
+    .error(function () { alert('error') })
+    .success(function (authenticated) {
+      let req = new XMLHttpRequest()
+      // direct access
+      req.open('GET', 'http://user-service.localhost/user', true) 
+      req.setRequestHeader('Accept', 'application/json')
+      req.setRequestHeader('Authorization', 'Bearer ' + keycloak.access_token)
+      req.onreadystatechange = function () {
+        if (req.readyState === 4) {
+          if (req.status === 200) {
+            document.getElementById("jsons").style.display = "unset";
+            document.getElementById("jsons").innerHTML = req.responseText;
+          } else {
+            alert('Request returned: ' + req.status)
+          }
+        }
+      }
+      req.send()
+    })
+</script>
+</body>
+</html>

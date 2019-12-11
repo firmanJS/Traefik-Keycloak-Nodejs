@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+        <title>Service Nodejs</title>
+    </head>
+    <body>
+        <div class="container">
+            <div class="row">
+                <h2 style="margin-left:20px;">Example Nodejs</h2>
+            </div>
+            <p>
+                <button type="button" <%= (rule.access_view === true ) ? "" : "disabled" %> class="btn btn-info">Read</button>
+                <button type="button" <%= (rule.access_edit === true ) ? "" : "disabled" %> class="btn btn-primary">Edit</button>
+                <button type="button" <%= (rule.access_create === true ) ? "" : "disabled" %> class="btn btn-success">Create</button>
+                <button type="button" <%= (rule.access_delete === true ) ? "" : "disabled" %> class="btn btn-danger">Delete</button>
+            </p>
+            <div class="list-group">
+                <div class="list-group-item">
+                    <%for (var result in request){%>
+                    <div class="media">
+                        <div class="media-body" style="border-bottom: 0.5px solid #9999;">
+                            <p><strong><%=result%></strong> : <code><%- request[result]%></code></p>
+                        </div>
+                    </div>
+                    <%}%>
+                </div>
+            </div>
+        </div>               
+    </body>
+</html>
