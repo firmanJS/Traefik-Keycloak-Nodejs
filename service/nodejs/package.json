@@ -10,7 +10,7 @@
   "dependencies": {
     "hogan-express": "*",
     "ejs": "^2.7.4",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "jsonwebtoken": "^8.5.1",
     "nodemon": "^1.19.4",
     "keycloak-connect": "*",
