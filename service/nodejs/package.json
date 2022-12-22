@@ -11,7 +11,7 @@
     "hogan-express": "*",
     "ejs": "^2.7.4",
     "express": "^4.17.1",
-    "jsonwebtoken": "^8.5.1",
+    "jsonwebtoken": "^9.0.0",
     "nodemon": "^1.19.4",
     "keycloak-connect": "*",
     "express-session": "*"
